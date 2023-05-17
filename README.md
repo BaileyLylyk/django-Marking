@@ -7,7 +7,8 @@ Guide to run the project:
 
 2.Install the dependencies for the project by following these steps:
 
-  2.1 Ensure that python is installed on your machine by running 'python --version' in the command prompt. You should be on at least version 3.10.3 for the bests experience but older version should also work.
+  2.1 Ensure that python is installed on your machine by running 'python --version' in the command prompt. You should be on at least version 
+      3.10.3 for the bests experience but older version should also work.
   
   
   2.2 Also check that you have pip, which can be done by typing 'pip' into the command prompt
