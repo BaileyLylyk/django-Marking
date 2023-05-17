@@ -1,0 +1,87 @@
+{% load crispy_forms_tags %}
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Marking | Create</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+  </head>
+  <body>
+
+    <style>
+      body{
+        margin: 0;
+        padding:0;
+        text-align: center;
+      }
+
+      #content{
+        width: 50%;
+        display: inline-block;
+        margin:0 auto;
+        text-align: left;
+      }
+
+      .assignment-box {
+        border: 1px solid gray;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+      }
+
+      .assignment-box h2 {
+        margin-top: 0;
+        margin-right: 10px;
+      }
+      /* Style for View button */
+      .assignment-box .view-button {
+        margin-left: auto;
+      }
+
+    </style>
+
+{% include 'markingApp/nav.html' %}
+
+<div class= "container-fluid" id="content">
+<h1>Submit an assignment. </h1>
+<p>Fill in the form below and submit a pdf file to be graded. </p>
+
+<form method="POST" enctype="multipart/form-data">
+  <div class="form-group">
+    {% csrf_token %}
+    {{form | crispy}}
+  </div>
+  
+  <button type="submit" class="btn btn-primary">Submit.</button>
+</form>
+
+<div style="height: clamp(1rem,3rem,4rem);"></div>
+<hr style="width: 100%; margin: auto;">
+
+
+</div>
+
+<div class= "container-fluid" id="content">
+  <div style="height: clamp(1rem,3rem,4rem);"></div>
+  <h1>View assigments.</h1>
+  <p>View details about marked assignments below </p>
+      
+    {% for submission in submissions %}
+    <div class="assignment-box">
+        <h2>{{ submission.assignmentID.assignmentName}}</h2>
+        <a href="{% url 'submission-detail' pk=submission.pk %}" class="btn btn-primary view-button">View</a>
+    </div>
+
+      {% empty %}
+          <p>No assignments found</p>
+      {% endfor %}
+
+  </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+  </body>
+</html>

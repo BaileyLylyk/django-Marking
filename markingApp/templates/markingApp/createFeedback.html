@@ -1,0 +1,125 @@
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+  </body>
+</html>
+{% load crispy_forms_tags %}
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Marking | Grading {{assignment.assignmentName}}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script
+			  src="https://code.jquery.com/jquery-3.6.4.js"
+			  integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E="
+			  crossorigin="anonymous"></script>
+  </head>
+  <body>
+
+    <style>
+      body{
+        margin: 0;
+        padding:0;
+        text-align: center;
+      }
+
+      #content{
+        width: 100%;
+        display: inline-block;
+        margin:0 auto;
+        text-align: left;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    </style>
+
+{% include 'markingApp/nav.html' %}
+
+<div class= "container" id="content">
+<h1>Marking a Submission for {{ assignment.assignmentName }}</h1>
+<p>Submitted by {{ submission.studentFirstName}} {{submission.studentLastName}} </p>
+
+<div class="alert alert-info" role="alert">
+  <span style="font-size: 25px;">ⓘ  </span>Remember that the feeback given should construct on a students overall ability, not just for a single assignment.
+</div>
+
+<form method="post" enctype="multipart/form-data" id="myFormset">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <table>
+      <thead>
+        <tr>
+          <th>Criteria</th>
+          <th>Criteria Level</th>
+          <th>Comment</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for form in formset %}
+          <tr>
+            <td>{{ criteria }}</td>
+            <td>{{ form.criteriaLevelID |as_crispy_field }}</td>
+            <td>{{ form.comment |as_crispy_field }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+  </table>
+  <h3>Total Mark: <span id ='markOutput'></span></h3>
+  <input type="hidden" id='markInput' name="total_mark" value="">
+  <script>
+    $(document).ready(function() {
+      $('#myFormset').on('change', 'input[type="radio"]', function() {
+        // Clear the existing list of selected radios
+        var selectedRadios = [];
+    
+        // Get all currently selected radios
+        $('input[type="radio"]:checked').each(function() {
+          // Add the current value to the list of selected radios
+          var currentValue = $(this).val();
+          selectedRadios.push(currentValue);
+        });
+        console.log(selectedRadios);
+    
+        // Retrieve the total mark for the selected radios
+        var csrf_token = $('input[name="csrfmiddlewaretoken"]').val();
+        var url = '{% url "calculate-mark" %}';
+        var data = {
+          'selectedRadios': selectedRadios,
+          'csrfmiddlewaretoken': csrf_token
+        };
+        $.post(url, data, function(response) {
+          // Update the output element with the calculated total mark
+          document.getElementById("markOutput").innerHTML = response.total_mark;
+          document.getElementById("markInput").value = response.total_mark;
+        });
+      });
+    });
+    </script>
+    
+  <button class= "btn btn-primary" type="submit">Save Feedback</button>
+
+</form>
+
+
+
+  
+<div style="height: clamp(1rem,3rem,4rem);"></div>
+<hr style="width: 100%; margin: auto;">
+</div>
+
+<div class= "container" id="content">
+  <div style="height: clamp(1rem,3rem,4rem);"></div>
+  <h1>Pick up where you left off.</h1>
+  <p>Follow the below link to begin editing assignments. </p>
+      
+    <a href="{% url 'assignment-view' %}" class="btn btn-warning">Edit</a>
