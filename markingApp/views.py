@@ -15,26 +15,40 @@ def home(request):
     return render(request, 'markingApp/home.html')
 
 #Assignment
+#Model form which creates an assignment
 class assignmentCreateView(CreateView):
+    #defines the model to use
     model = Assignment
+    #defines where this form will be displayed
     template_name = 'markingApp/createAssignment.html'
+    #defines which fields should appear in the form
     fields = ["assignmentName"]
 
-
+#overriding the form validation method in django
     def form_valid(self, form):
-        response = super().form_valid(form)
+        #Validates the form using the parent method
+        super().form_valid(form)
         self.object.save()  # Save the object to the database
+        #redirects the user to the page to create criteria with the assignment object set as a url parameter
         return redirect(reverse_lazy('criteria-create', kwargs={'pk': self.object.pk}))
 
+#model form for updating an assignment
 class assignmentEditView(UpdateView):
+    #defines the model to use
     model = Assignment
+    #defines where this form will be displayed
     template_name = 'markingApp/editAssignment.html'
+    #defines which fields should appear in the form
     fields = ["assignmentName"]
 
 class assignmentDeleteView(DeleteView):
+    #defines the model to use
     model = Assignment
+    #defines where this form will be displayed
     template_name = 'markingApp/deleteAssignment.html'
+    #defines which fields should appear in the form
     fields = ["assignmentName"]
+    #defines where the user should be sent if the form is submitted succesfully
     success_url = "/"
 
 
@@ -109,38 +123,63 @@ def mark(request):
     return render(request, 'markingApp/mark.html')
 
 def feedbackCreateView(request, pk):
+    #gets the submission based on the pk sent to the view
     submission = Submission.objects.get(id=pk)
+    #sets the related assignmnet from this submission
     assignment = submission.assignmentID
+    #gets all the criteria where the assignment is the relevant one
     criteria = Criteria.objects.filter(assignmentID=assignment.id)
+    #stores the criteria as a list instead of queryset as is the default
     criteria_list = list(criteria)
+    #instantiates the formset
     FeedbackFormset = modelformset_factory(
+        #sets the formset model
         Feedback,
+        #determines how many forms are needed based on the number of criteria an assignment has
         extra=len(criteria),
         max_num=len(criteria),
+        #sets the fields for the html form to include
         fields=['criteriaLevelID', 'comment'],
+        #sets the crtieria level ID as a radio button group
         widgets={'criteriaLevelID':forms.RadioSelect(),}
     )
 
+    #when the form is submitted
     if request.method == "POST":
+        #instantiates the formset for submitting data
         formset = FeedbackFormset(request.POST, queryset=Feedback.objects.none())
+        #sets the total mark
         total_mark = request.POST.get('total_mark')
+        # if the data is considered valid by django
         if formset.is_valid():
+            #gets all the instances but does not save them yet
             instances = formset.save(commit=False)
+            #for each instance
             for instance in instances:
+                #sets the submission ID and saves it
                 instance.submissionID = submission
+                #saves each instance of feedback
                 instance.save()
+            #sets the mark within the submission model
             submission.mark= total_mark
+            #saves the submission
             submission.save()
+            #redirects to the home page of the app
             return redirect('/')
         else:
+            #if formset is not valid
             print("Formset Invalid")
             return redirect('/')
 
     else:
+        #when method is get
         formset = FeedbackFormset(queryset=Feedback.objects.none())
+        #for each criteria
         for i, criterion in enumerate(criteria):
+            #limits the choices for criteria level ID to those related to the current criteria
             formset.forms[i].fields['criteriaLevelID'].queryset = criterion.criterialevel_set.all()
 
+        #context variables are returned to the template 
         context = {
             'submission': submission,
             'formset': formset,
@@ -227,26 +266,38 @@ class criteriaLevelCreateView(CreateView):
 
 @csrf_exempt
 def calculateMark(request):
+    #when post request is sent to this view
     if request.method == 'POST':
+        #gets the selected radio buttons from html
         selected_radios = request.POST.getlist('selectedRadios[]')
+        #finds the corresponding criteria levels for each selected radio
         criteria_levels = CriteriaLevel.objects.filter(id__in=selected_radios)
 
         criteria_total_marks = {}
+        #for each criteria level
         for cl in criteria_levels:
+            #sets variables for informatio about each criteria
             criteria_id = cl.criteriaID.pk
             criteria_total_mark = cl.criteriaID.criteriaTotalMark
             criteria_level = cl.criteriaLevel
+            #calculates the weight of the criteria
             level_weight = criteria_level * 0.25
+            #calculates the mark based on the weight
             criteria_weight = criteria_total_mark * level_weight
+            #checks if the criteria is already in the array and adds it if not
             if criteria_id in criteria_total_marks:
                 criteria_total_marks[criteria_id] += criteria_weight
             else:
                 criteria_total_marks[criteria_id] = criteria_weight
         
+        #sums up the total mark from the total marks array
         total_mark = sum(criteria_total_marks.values())
+        #rounds the total mark to an int to prevent float issues
         total_mark = round(total_mark)
+        #sends the data back as context information
         mark_data = {'total_mark': total_mark,
                      'criteria_marks':criteria_total_marks}
+        #sends the data back to the page it was requested from
         return JsonResponse(mark_data, safe=False)
     
     else:
