@@ -67,7 +67,7 @@
       <tbody>
         {% for form in formset %}
           <tr>
-            <td>{{ criteria }}</td>
+            <td>{{ criteria.0 }}</td>
             <td>{{ form.criteriaLevelID |as_crispy_field }}</td>
             <td>{{ form.comment |as_crispy_field }}</td>
           </tr>

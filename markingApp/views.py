@@ -198,10 +198,11 @@ class criteriaLevelCreateView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         assignment = Assignment.objects.get(pk=self.kwargs['pk'])
-        criteria = Criteria.objects.get(assignmentID=assignment)
-        context['criteria'] = criteria
+        # criteria = Criteria.objects.get(assignmentID=assignment)
+        # context['criteria'] = criteria
         # retrieve a queryset of existing CriteriaLevel objects for the current Criteria
-        criteriaLevel_queryset = CriteriaLevel.objects.filter(criteriaID=criteria)
+        # criteriaLevel_queryset = CriteriaLevel.objects.filter(criteriaID=criteria)
+        criteriaLevel_queryset = CriteriaLevel.objects.none()
         # create a formset using modelformset_factory and pass it the queryset and initial values
         CriteriaLevelFormSet = modelformset_factory(CriteriaLevel, extra=3, fields=('criteriaID','criteriaLevel','criteriaLevelDescription'))
         formset = CriteriaLevelFormSet(queryset=criteriaLevel_queryset)
@@ -243,6 +244,7 @@ def calculateMark(request):
                 criteria_total_marks[criteria_id] = criteria_weight
         
         total_mark = sum(criteria_total_marks.values())
+        total_mark = round(total_mark)
         mark_data = {'total_mark': total_mark,
                      'criteria_marks':criteria_total_marks}
         return JsonResponse(mark_data, safe=False)
