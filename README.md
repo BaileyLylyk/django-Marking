@@ -1,5 +1,10 @@
 # django-Marking
-django marking project for my dissertation.
+django marking project for my dissertation. Aims to improve the user experience when grading assignments and giving feedback at a univeristy level through an approach of simplification and decluttering compared to the busy dashboards of other LMS platforms.
+
+Warning:
+
+The project may have several issues displaying certain content currently, as it was last used for demonstration purposes without much time for bug fixing.
+
 
 Guide to run the project:
 
